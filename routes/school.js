@@ -26,6 +26,7 @@ router.post("/", async (req, res) => {
 });
 
 // ✅ Update school by ID
+// routes/schools.js (or wherever your school router is)
 router.put("/update-school/:id", async (req, res) => {
   try {
     const {
@@ -43,31 +44,34 @@ router.put("/update-school/:id", async (req, res) => {
       studentClassroomRatio,
       studentTeacherRatio,
       principal,
+      image, // <-- ADD THIS
     } = req.body;
 
-    // Collect only provided fields
-    const updateData = {};
-    if (schoolName !== undefined) updateData.schoolName = schoolName;
-    if (address !== undefined) updateData.address = address;
-    if (sector !== undefined) updateData.sector = sector;
-    if (ward !== undefined) updateData.ward = ward;
-    if (board !== undefined) updateData.board = board;
+    const setData = {};
+    if (schoolName !== undefined) setData.schoolName = schoolName;
+    if (address !== undefined) setData.address = address;
+    if (sector !== undefined) setData.sector = sector;
+    if (ward !== undefined) setData.ward = ward;
+    if (board !== undefined) setData.board = board;
     if (mediumOfInstruction !== undefined)
-      updateData.mediumOfInstruction = mediumOfInstruction;
-    if (grade !== undefined) updateData.grade = grade;
-    if (averageFees !== undefined) updateData.averageFees = averageFees;
-    if (students !== undefined) updateData.students = students;
-    if (teachers !== undefined) updateData.teachers = teachers;
-    if (classrooms !== undefined) updateData.classrooms = classrooms;
+      setData.mediumOfInstruction = mediumOfInstruction;
+    if (grade !== undefined) setData.grade = grade;
+    if (averageFees !== undefined) setData.averageFees = averageFees;
+    if (students !== undefined) setData.students = students;
+    if (teachers !== undefined) setData.teachers = teachers;
+    if (classrooms !== undefined) setData.classrooms = classrooms;
     if (studentClassroomRatio !== undefined)
-      updateData.studentClassroomRatio = studentClassroomRatio;
+      setData.studentClassroomRatio = studentClassroomRatio;
     if (studentTeacherRatio !== undefined)
-      updateData.studentTeacherRatio = studentTeacherRatio;
-    if (principal !== undefined) updateData.principal = principal;
+      setData.studentTeacherRatio = studentTeacherRatio;
+    if (principal !== undefined) setData.principal = principal;
+
+    // OVERWRITE images with the array coming from client
+    if (Array.isArray(image)) setData.image = image;
 
     const updated = await School.findByIdAndUpdate(
       req.params.id,
-      { $set: updateData },
+      { $set: setData },
       { new: true }
     );
 
