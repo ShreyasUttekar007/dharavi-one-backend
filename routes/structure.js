@@ -19,7 +19,9 @@ router.post("/", async (req, res) => {
     await newStructure.save();
     res.status(201).json(newStructure);
   } catch (error) {
-    res.status(400).json({ error: "Failed to add structure", details: error.message });
+    res
+      .status(400)
+      .json({ error: "Failed to add structure", details: error.message });
   }
 });
 
@@ -36,9 +38,12 @@ router.put("/update-structure/:id", async (req, res) => {
       dateOfEstablishment,
       status,
       relevance,
-      image,   // array of image URLs
+      image, // array of image URLs
       longitude,
       latitude,
+      remarks,
+      obstructingTrafficOrViolating,
+      registration,
     } = req.body;
 
     // Collect only provided fields
@@ -57,6 +62,10 @@ router.put("/update-structure/:id", async (req, res) => {
     if (image !== undefined) updateData.image = image; // overwrite array
     if (longitude !== undefined) updateData.longitude = longitude;
     if (latitude !== undefined) updateData.latitude = latitude;
+    if (remarks !== undefined) updateData.remarks = remarks;
+    if (obstructingTrafficOrViolating !== undefined)
+      updateData.obstructingTrafficOrViolating = obstructingTrafficOrViolating;
+    if (registration !== undefined) updateData.registration = registration;
 
     const updated = await Structure.findByIdAndUpdate(
       req.params.id,
@@ -70,6 +79,5 @@ router.put("/update-structure/:id", async (req, res) => {
     res.status(500).json({ error: "Failed to update structure" });
   }
 });
-
 
 module.exports = router;
