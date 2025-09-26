@@ -1,12 +1,17 @@
 const express = require("express");
 const jwt = require("jsonwebtoken");
 const config = require("../config");
-const mongoose = require('mongoose');
+const mongoose = require("mongoose");
 const User = require("../models/User");
+const authenticateUser = require("../middleware/authenticateUser");
 
 const router = express.Router();
 
 const { ObjectId } = mongoose.Types;
+
+const isModOrAdmin = (user) =>
+  Array.isArray(user?.roles) &&
+  (user.roles.includes("admin") || user.roles.includes("mod"));
 
 router.post("/signup", async (req, res, next) => {
   try {
@@ -154,7 +159,6 @@ router.put("/update-user/:userId", async (req, res, next) => {
   }
 });
 
-
 router.delete("/users/:id", async (req, res, next) => {
   try {
     const userId = req.params.id;
@@ -187,7 +191,7 @@ router.put("/update-usersss/:userId", async (req, res, next) => {
     // Update user data
     if (email) user.email = email;
     if (roles) user.roles = roles;
-    if (password) user.password = password; 
+    if (password) user.password = password;
 
     // Save the updated user data
     await user.save();
@@ -195,6 +199,51 @@ router.put("/update-usersss/:userId", async (req, res, next) => {
     res.status(200).json({ message: "User updated successfully" });
   } catch (error) {
     next(error);
+  }
+});
+
+// GET /api/users  -> list minimal fields for the table
+router.get("/", authenticateUser, async (req, res) => {
+  try {
+    if (!isModOrAdmin(req.user)) {
+      return res.status(403).json({ message: "Forbidden" });
+    }
+    const users = await User.find({}, "userName email roles wards").sort({
+      userName: 1,
+    });
+    res.json(users);
+  } catch (err) {
+    console.error("List users error:", err);
+    res.status(500).json({ message: "Failed to fetch users" });
+  }
+});
+
+// PUT /api/users/:id/wards  -> set wards (only 183-189 allowed)
+router.put("/:id/wards", authenticateUser, async (req, res) => {
+  try {
+    if (!isModOrAdmin(req.user)) {
+      return res.status(403).json({ message: "Forbidden" });
+    }
+    let { wards } = req.body;
+    if (!Array.isArray(wards)) wards = [];
+
+    // normalize and validate: only allow strings "183".."189"
+    const ALLOWED = new Set(["183", "184", "185", "186", "187", "188", "189"]);
+    const cleaned = Array.from(
+      new Set(wards.map((w) => String(w).trim()).filter((w) => ALLOWED.has(w)))
+    );
+
+    const updated = await User.findByIdAndUpdate(
+      req.params.id,
+      { $set: { wards: cleaned } },
+      { new: true, select: "userName email roles wards" }
+    );
+
+    if (!updated) return res.status(404).json({ message: "User not found" });
+    res.json(updated);
+  } catch (err) {
+    console.error("Update wards error:", err);
+    res.status(500).json({ message: "Failed to update wards" });
   }
 });
 

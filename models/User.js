@@ -24,15 +24,12 @@ const UserSchema = new Schema(
       type: [
         {
           type: String,
-          enum: [
-            "admin",
-            "mod",
-            "user"
-          ],
+          enum: ["admin", "mod", "user"],
         },
       ],
       default: ["user"],
     },
+    wards: [{ type: String, trim: true }],
   },
   { timestamps: true }
 );

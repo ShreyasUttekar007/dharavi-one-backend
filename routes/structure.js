@@ -1,13 +1,37 @@
 const express = require("express");
 const router = express.Router();
 const Structure = require("../models/Structure");
+const authenticateUser = require("../middleware/authenticateUser"); // <-- use your current one
 
-// ✅ Get all structures
-router.get("/get-structure", async (req, res) => {
+// GET only the structures the user is allowed to see
+router.get("/get-structure", authenticateUser, async (req, res) => {
   try {
-    const structures = await Structure.find();
+    const roles = Array.isArray(req.user?.roles) ? req.user.roles : [];
+    const isModOrAdmin = roles.includes("mod") || roles.includes("admin");
+    const userWards = Array.isArray(req.user?.wards)
+      ? req.user.wards.map((w) => String(w || "").trim()).filter(Boolean)
+      : [];
+
+    // Build filter:
+    // - mods/admins see all
+    // - others see only their assigned wards (or nothing if none assigned)
+    let filter = {};
+    if (!isModOrAdmin) {
+      if (userWards.length === 0) {
+        return res.json([]); // no wards assigned → no data
+      }
+      filter.ward = { $in: userWards };
+    }
+
+    // (Optional) allow status filtering via ?status=Regularize, etc.
+    if (req.query.status && String(req.query.status).trim()) {
+      filter.status = String(req.query.status).trim();
+    }
+
+    const structures = await Structure.find(filter);
     res.json(structures);
   } catch (error) {
+    console.error("get-structure error:", error);
     res.status(500).json({ error: "Failed to fetch structures" });
   }
 });
