@@ -104,18 +104,18 @@ router.put("/update-structure/:id", async (req, res) => {
   }
 });
 
+// GET /api/structures/basic-public  -> returns ALL fields for each Structure
 router.get("/basic-public", async (req, res) => {
   try {
-    const docs = await Structure.find(
-      {}, 
-      { primaryKey: 1, structureName: 1, image: 1, hutmentId: 1 } // + hutmentId
-    ).lean();
+    // No projection => all fields are returned
+    const docs = await Structure.find({}).select("-__v").lean(); // drop __v (optional)
     res.json(docs);
   } catch (err) {
-    console.error(err);
+    console.error("Failed to fetch structures:", err);
     res.status(500).json({ error: "Failed to fetch structures" });
   }
 });
+
 
 
 
