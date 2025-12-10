@@ -5,6 +5,7 @@ const StructureSchema = new Schema(
   {
     primaryKey: { type: String, required: true, unique: true, trim: true },
     sector: { type: String, trim: true },
+    hutmentId: { type: String, trim: true },
     ward: { type: String, trim: true },
     structureName: { type: String, trim: true },
     deity: { type: String, trim: true },

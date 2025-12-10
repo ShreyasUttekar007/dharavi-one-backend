@@ -107,8 +107,8 @@ router.put("/update-structure/:id", async (req, res) => {
 router.get("/basic-public", async (req, res) => {
   try {
     const docs = await Structure.find(
-      {},
-      { primaryKey: 1, structureName: 1, image: 1 }
+      {}, 
+      { primaryKey: 1, structureName: 1, image: 1, hutmentId: 1 } // + hutmentId
     ).lean();
     res.json(docs);
   } catch (err) {
@@ -116,6 +116,7 @@ router.get("/basic-public", async (req, res) => {
     res.status(500).json({ error: "Failed to fetch structures" });
   }
 });
+
 
 
 module.exports = router;
